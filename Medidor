@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+echo "#### enter PID to follow ####"
+read a
+
+bar[0]="-"
+bar[1]="#"
+perc () {
+  b=$(ps -o pcpu -p $a | awk  'BEGIN{ RS = "" ; FS = "\n"}{print $2}' | awk 'BEGIN{ FS = "." } {print $1}')
+}
+  echo -ne "$bar"
+  sleep 0.3
+while [[ $q -ne 1 ]]; do
+    perc
+    f=(100 - $b)
+    clear
+    echo "usage of PID $a is:"
+    printf %"$b"s  | tr " " "#" && printf %"$f"s | tr " " "-" && echo " "$b"%"
+    sleep 1
+    if [[ $f -eq 0 || $b -eq 100 ]]; then
+      q=1
+    fi
+ done

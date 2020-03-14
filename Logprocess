@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+time=$(date +"%T")
+date=$(date +"%e")
+while true
+	do
+		b=$(ps -eo pid,lstart,cmd | awk -v A="$time" -v B="$date" '{ if ( A <= $5 && B <= $4 ) print $1,$5,$7;}')
+		echo "$b" > log.txt
+		sleep 2
+		clear
+	done

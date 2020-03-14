@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+echo "#### Enter the directory full path####"
+read dir
+awk1 () {
+   find $dir -type f | awk -v n="$i" 'BEGIN{ RS = "" ; FS = "\n"}{print $n}'
+}
+list=$( awk1 | wc -l)
+  for ((i = 1 ; i <= $list ; i++ )); do
+    word[$i]=$( awk1 )
+    neword[$i]=$( awk1 | awk 'BEGIN { FS = "/"} ; { print $NF}' )
+    newfold[$i]=$( awk1 | xargs dirname )
+    mv ${word[$i]} ${newfold[$i]}"/"${neword[$i]^}
+  done
+echo "Done"

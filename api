@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+echo "Ingresa numero de tag"
+read tag #20195
+echo "Ingresar ambiente (ej: cn259)"
+read amb
+echo "Clave API"
+read api
+echo "ingresar usuario de admin"
+read user
+echo "cantidad de dispositivos?"
+read dis
+for (( i=1 ; i <= $dis ; i++ )); do
+echo "ID de dipostivo $i"
+read id[$i]
+val[$i]="<Value>${id[$i]}</Value>"
+done
+curl --location --request POST "https://$amb.airwatchportals.com/api/mdm/tags/$tag/adddevices" \
+--header "aw-tenant-code: $api" \
+--data-raw "<BulkInput xmlns="http://www.air-watch.com/servicemodel/resources"><BulkValues>${val[@]}</BulkValues></BulkInput>" \
+--user $user

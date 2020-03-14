@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+echo "####write ethe full directory path####"
+read path
+lista=$(ls $path| wc -l)
+for (( i=1 ; i<=$lista ; i++ )); do
+  archivo[$i]=$(find $path -type f | awk -v n="$i" 'BEGIN{ RS = "" ; FS = "\n"}{print $n}' )
+  pos=$i
+done
+for (( n=1; n <= "$i" ; n++ )); do
+    if [[ "$n" -gt "$i" ]] || [[ $pos -lt 1 ]] ; then
+      break
+    fi
+    comp=$(diff -q ${archivo[$n]} ${archivo[$pos]})
+    if [[ -z $comp ]]; then
+    echo "los archivos ${archivo[$n]} ${archivo[$pos]} son iguales">> those.txt
+    fi
+    echo $n $pos $i
+    if [[ "$n" -eq "$pos" ]] ; then
+      echo $n $pos
+      n=0
+      pos=$((pos-1))
+    fi
+done
