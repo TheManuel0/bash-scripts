@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+
+case $1 in
+  --help)
+  #This shows the menu
+  echo -e "Please select the option for this script \nExample: localci --help Show this screen \n--loop Automatically update FLASK every time a file is changed \n--push Convert into docker and push latest working version \n--pull Pull latest version from Docker"
+    ;;
+  --loop)
+  #This segment runs flask again, changes version if it finds any change inside the folder or files, and exits if it fails to run the changes
+      flask run >> log.txt 2>&1 &
+      check() {
+        ps aux | grep flask | grep python| awk '{print $2}' | awk 'BEGIN{RS="" ;  FS="\n" } {print $1}'
+      }
+      ver() {
+        cat app.py | awk 'BEGIN{FS = "#"} {print $2}' | awk 'BEGIN{RS = "";FS = "="}{print $2}'
+      }
+    files(){
+      lista=$(ls | wc -l)
+      for (( i=1 ; i<=$lista ; i++ )); do
+        archivo[$i]=$(find . -type f | awk -v n="$i" 'BEGIN{ RS = "" ; FS = "\n"}{print $n}' )
+        tr -d '\0' <"${archivo[$i]}"
+      done
+    }
+      turn=1
+      while true; do
+        sleep 5
+        if [[ $turn -eq 1 ]]; then
+          old=$(files)
+          vold=$(ver)
+          turn=0
+        elif [[ $turn -eq 0 ]]; then
+          new=$(files)
+          vnew=$(ver)
+          dif=$(diff <(echo "$old") <(echo "$new"))
+          if [[ -n $dif ]] && [[ $vnew -eq $vold ]]; then
+            oldr=$(check)
+            rm -rf log.txt
+            kill "$oldr"
+            export FLASK_APP=app.py
+            flask run >> log.txt 2>&1 &
+            sleep 2
+            CHECK_STATUS=$(check)
+            if [[ -n $CHECK_STATUS ]]; then
+              v=$(($vnew + 1))
+              sed -i "1s/.*/#version=$v/" app.py
+              echo "Script changed and working, new version is $v"
+              turn=1
+            elif [[ -z $CHECK_STATUS ]]; then
+              echo "Script is not working! exiting"
+              exit 2
+            fi
+          fi
+        fi
+      done &
+    ;;
+  --push)
+      #Build the actual folder into a docker image and run a container with it
+      echo "Pushing version $v to docker"
+      docker rm "$(docker stop $(docker ps -a -q --filter ancestor=webflask))"
+      docker build . -t webflask
+      docker run -d -p 5000:5000 webflask
+      echo "Done"
+    ;;
+  --pull)
+      #Copy the files of the docker into the actual directory
+      echo "copying files to the actual directory"
+      docker cp $(docker ps -a -q --filter ancestor=webflask):/pyweb .
+      echo "Content of this folder: "$(ls -l .)
+    ;;
+  *)
+      #This shows the menu
+      echo -e "Please select the option for this script \nExample: localci --help Show this screen \n--loop Automatically update FLASK every tyme app.py is updated \n--push Convert into docker and push latest working version \n--pull Pull latest version from Docker"
+    ;;
+esac
