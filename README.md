@@ -20,3 +20,7 @@
 * Segundos: Copy the content of files, and stops X seconds every Y seconds.
 
 * API: Workspace ONE Api call
+
+# AWS
+- Bash scripts for aws management
+*Dynamodb_add-query: A script for adding or querying an item from a table in DynamoDB
